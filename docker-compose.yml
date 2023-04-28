@@ -1,0 +1,68 @@
+version: "3"
+services:
+  drone:
+    image: drone/drone:2.17
+    container_name: drone.server
+    restart: always
+    ports:
+      - 8080:80
+    networks:
+      - drone
+    volumes:
+      - ./data:/data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    environment:
+      DRONE_SERVER_HOST: localhost:8080 # your domain，填與 github webhook callback url 一樣即可
+      DRONE_SERVER_PROTO: http # 與外界溝通使用 https
+      DRONE_RPC_SECRET: 0059cd959f43a2433114ae7d75fb369c # 可自行產生一串亂碼作為 drone rpc token
+      # github
+      DRONE_GITHUB_CLIENT_ID: a42dd4636455ca8abf7a # 填入 github OAuth 提供的 client id
+      DRONE_GITHUB_CLIENT_SECRET: 0cf118c2d9154f045e42de5a32948b2f23ace1d6 # 填入 github OAuth 提供的 client secret
+      # log, for debug use
+      DRONE_DEBUG: true
+      DRONE_LOGS_PRETTY: true
+      DRONE_LOGS_COLOR: true
+      DRONE_LOGS_TRACE: true
+    
+  drone-runner:
+    image: drone/drone-runner-docker:1.8.3
+    container_name: drone.runner
+    restart: always
+    networks:
+      - drone
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    environment:
+      DRONE_RPC_HOST: drone.server
+      DRONE_RPC_SECRET: 0059cd959f43a2433114ae7d75fb369c # 填入和上面 drone server 一樣的值
+      DRONE_RPC_PROTO: http # 與 drone server 是透過 docker 內網溝通，使用 http 即可
+      DRONE_RUNNER_CAPACITY: 5
+      DRONE_RUNNER_NAME: drone-docker-runner
+      # log, for debug use
+      DRONE_DEBUG: true
+      DRONE_LOGS_PRETTY: true
+      DRONE_LOGS_COLOR: true
+      DRONE_LOGS_TRACE: true
+      
+
+networks:
+  drone:
+    name: drone
+    driver: bridge
