@@ -1,3 +1,4 @@
+---
 kind: pipeline
 type: docker
 name: default
@@ -15,6 +16,54 @@ clone:
 steps:
 - name: test
   image: python
+  environment:
+    API_KEY:
+      from_secret: API_KEY
+    age:
+      from_secret: age
   commands:
-    - echo "this is $STAGE environment"
-    - echo "my name is {{ .input.print }}"
+    - echo his is $API_KEY
+    - echo secret age $age
+    - echo parameter test ${name}
+    - echo this is $STAGE environment
+    - echo my name is {{ .input.print }}
+
+trigger:
+  branch:
+    - master
+    - dev
+  event:
+    - custom
+    - push
+    - pull_request
+
+
+---
+kind: pipeline
+type: docker
+name: deploy-service
+
+# server:
+#  host: 1.2.3.4
+#  user: root
+#  password: correct-horse-battery-staple
+
+platform:
+  os: linux
+  arch: arm64
+
+clone:
+  depth: 1
+
+steps:
+- name: test
+  image: python
+  commands:
+    - echo "this is promote"
+
+trigger:
+  branch:
+    - master
+    - dev
+  event:
+    - prmote
