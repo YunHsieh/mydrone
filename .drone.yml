@@ -2,6 +2,9 @@ kind: pipeline
 type: docker
 name: default
 
+environment:
+  STAGE: dev
+
 platform:
   os: linux
   arch: arm64
@@ -13,4 +16,5 @@ steps:
 - name: test
   image: python
   commands:
-  - echo "my name is {{ .input.print }}"
+    - echo "this is $STAGE environment"
+    - echo "my name is {{ .input.print }}"
